@@ -31,12 +31,7 @@ import sys
 import time
 
 from batchwrapper.azbatchstorage import AzureBatchStorage
-from batchwrapper.azbatch import AzureBatchConfiguration
-from batchwrapper.azbatch import AzureCredentials
-from batchwrapper.azstorage import AzureStorage
 from batchwrapper.azbatch import AzureBatch
-
-from common.helpers import select_latest_verified_vm_image_with_node_agent_sku
 
 if __name__ == '__main__':
 
@@ -53,15 +48,8 @@ if __name__ == '__main__':
     storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
-
-
-
     storage.addApplicationFilePath("task.py")
     storage.uploadApplicationFiles()
-
-
-    #storage.createOutputFolder()
-
 
     my_batch = AzureBatch(storage)
     app = storage.getAppResourceFiles()
