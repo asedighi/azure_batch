@@ -30,13 +30,10 @@ import azure.batch.models as batchmodels
 from batchwrapper.config import AzureCredentials
 from batchwrapper.config import AzureBatchConfiguration
 from batchwrapper.config import getRandomizer
-from batchwrapper.azbatchstorage import AzureBatchStorage
-from azure.batch.models.resource_file import ResourceFile
-from azure.batch.operations import PoolOperations
+
 
 sys.path.append('.')
 sys.path.append('..')
-
 
 import common.helpers
 
