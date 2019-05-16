@@ -36,7 +36,7 @@ sys.path.append('.')
 sys.path.append('..')
 
 import common.helpers
-
+import time
 
 class AzureBatch():
 
@@ -112,6 +112,8 @@ class AzureBatch():
         for n in pool_list:
             self.delete_pool(n)
 
+
+
     def repurpose_existing_pool(self, pool='', app_resources='', app_name='', input_resources=''):
 
         self.use_exisiting_pool(pool)
@@ -125,11 +127,65 @@ class AzureBatch():
             print("App name cannot be empty.  HINT: This python file needs to inherit from AzureBatchEngine")
             exit(-1)
 
+        tasks = list()
+
+        user = batchmodels.AutoUserSpecification(scope=batchmodels.AutoUserScope.pool, elevation_level=batchmodels.ElevationLevel.admin)
+
+        job_id = self.create_a_job()
+
+        command = ['rm -rf $AZ_BATCH_NODE_SHARED_DIR/*']
+
+        print("Command to be executed is: {}".format(command))
+        tasks.append(batch.models.TaskAddParameter(
+            '{}_{}'.format(str(job_id), "clean"),
+            common.helpers.wrap_commands_in_shell('linux', command), user_identity=batchmodels.UserIdentity(auto_user=user))
+        )
 
 
+        self.batch_client.task.add_collection(job_id, tasks)
 
 
+        #we need to create a new job now
+        tasks.clear()
+        job_id = self.create_a_job()
 
+        command = [
+            'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
+            'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(app_name),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("batch.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("config.py"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("__init__.py"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("__init__.py"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("__init__.py"),
+        ]
+
+        for i in input_resources:
+            print("adding file: {}".format(i.file_path))
+            command.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
+
+
+        print("commands to be published: {}".format(command))
+
+        resource_meta = list()
+        resource_meta.extend(app_resources)
+        #resource_meta.extend(input_resources)
+
+        user = batchmodels.AutoUserSpecification(scope=batchmodels.AutoUserScope.pool, elevation_level=batchmodels.ElevationLevel.admin)
+
+
+        print("Command to be executed is: {}".format(command))
+        tasks.append(batch.models.TaskAddParameter(
+            '{}_{}'.format(str(job_id), "repurpose"),
+            common.helpers.wrap_commands_in_shell('linux', command),resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user))
+        )
+
+        self.batch_client.task.add_collection(job_id, tasks)
+
+
+        return self.pool_name
 
     def create_pool(self, app_resources='', app_name='', input_resources=''):
 

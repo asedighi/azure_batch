@@ -36,7 +36,7 @@ DEFAULT_LOCATION = 'eastus'
 
 
 def getRandomizer():
-    timestamp = int(time.time())
+    timestamp = int(time.time()* 100000)
     return str(timestamp)
 
 
