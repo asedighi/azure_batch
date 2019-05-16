@@ -247,7 +247,8 @@ class AzureBatch():
         """
         Adds a task for each input file in the collection to the specified job.
         :param str job_id: The ID of the job to which to add the tasks.
-        :param  input_file:  batchmodels.ResourceFile object
+        :param  input_files: more like input to the exe running on the engine.
+        task.py a.txt (a.txt is the input to the exe and should get passed as input
         """
         tasks = list()
 
