@@ -47,6 +47,20 @@ This file needs to implement a method called do_action(self, *argv).  This metho
 
     my_batch.create_pool(app_resources=app, app_name="task.py", input_resources=input_files)
 
+
+**You can use an already existing pool**
+This will keep everything intact.  Nothing will change
+
+
+    my_pool = "azpool_1558014841"
+    my_batch.use_exisiting_pool(my_pool)
+
+
+**Or, you can re-purpose an existing pool with new input files/exe**
+
+    my_batch.repurpose_existing_pool(my_pool,app, "task.py", input_files)
+
+
 **Create a new job**
 
     job_id = my_batch.create_a_job()
@@ -63,10 +77,13 @@ In this example, task.py will be called twice: once with a.txt and once with b.t
     my_batch.add_tasks_to_job(job_id, args)
 
 
+
+
+
 **Other features:**
 
 * You dont need to create a new pool.  You can reuse the pool already created for the same job
-* repurpose an already created pool for a new job (TODO)
+* repurpose an already created pool for a new job   
 * Config files are there for pool sizing. etc.  
 * Update/overwrite of config files (TODO)
 * Error Handling (TODO)
