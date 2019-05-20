@@ -85,5 +85,49 @@ In this example, task.py will be called twice: once with a.txt and once with b.t
 * You dont need to create a new pool.  You can reuse the pool already created for the same job
 * repurpose an already created pool for a new job   
 * Config files are there for pool sizing. etc.  
+* the engine/task can create an output file, and submit that output file for it to be copied to Azure Blob
 * Update/overwrite of config files (TODO)
 * Error Handling (TODO)
+
+
+
+
+**Example Task.py**
+
+Task.py is currently the file name to be used for running a task by engine on Azure Batch.  
+
+
+First, import the base class.  This is needed specially as more features are added to this framework
+
+````
+from engine.azbatchengine import AzureBatchEngine
+````
+
+TaskDo is the name of the class that takes in AzureBatchEngine base class.  You need to call the base class constructor
+ 
+
+````
+class TaskDo(AzureBatchEngine):
+    def __init__(self):
+        AzureBatchEngine.__init__(self)
+````
+
+do_action is the method that represents the business logic.  The arguments (args) are past in from the client driver shown above.  
+
+
+    def do_action(self, *args):
+        print('Hello world from do_action')
+        print("the current working directory is: {}".format(os.getcwd()))
+
+        for i in args:
+            print("i need to do something to: {}".format(i))
+        
+        
+        #### Do something here...
+
+Once all done, you may want to upload the result file back into Azure Blob to be picked up (by the driver again perhaps). 
+
+        self.addFileToUpload("a.txt")
+        
+        
+  
