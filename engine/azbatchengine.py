@@ -39,16 +39,12 @@ sys.path.append('/mnt/batch/tasks/shared/batchwrapper')
 
 from batchwrapper.config import getRandomizer
 from batchwrapper.config import AzureCredentials
-from task import TaskDo
 from batchwrapper.config import ReadConfig
 from batchwrapper.config import TaskConfig
 from batchwrapper.config import find_file_path
 import argparse
 import ntpath
 import azure.storage.blob as azureblob
-
-
-
 
 class AzureBatchEngine():
 
@@ -84,14 +80,28 @@ class AzureBatchEngine():
 
 
     def do(self, *args):
-        task = TaskDo()
-        task.do_action(*args)
+        #task = TaskDo()
+
+        self.do_action(*args)
+
+        #self.uploadResultData()
+        self.uploadFiles()
+
+    def do_action(self, *args):
+        pass
 
     def addFileToUpload(self, file_name=''):
 
-        name = find_file_path(file_name)
+
+        #/mnt/batch/tasks/workitems/<job id>/job-<#>/<task id>/wd
+        #/mnt/batch/tasks/shared
+        name = find_file_path(file_name, "../../../../../")
+        print("found file to upload: {}".format(name))
         if name != '':
-            self.file_list_to_upload.extend(name)
+            self.file_list_to_upload.extend([name])
+
+        print("Will upload: {}".format(self.file_list_to_upload))
+
 
 
     def dataToUpload(self, data=''):
@@ -109,9 +119,8 @@ class AzureBatchEngine():
         for output_file in self.file_list_to_upload:
 
             print('Uploading file {} to container [{}]...'.format(output_file, self.container_name))
-
             self.blob_client.create_blob_from_path(self.container_name, ntpath.basename(output_file), output_file)
-
+            self.file_list_to_upload.remove(output_file)
 
 
 
@@ -120,7 +129,9 @@ if __name__ == '__main__':
 
     print("received input: {}".format(sys.argv[1:]))
 
-    engine = AzureBatchEngine()
+    from task import TaskDo
+
+    engine = TaskDo()
     engine.do(sys.argv[1:])
 
 

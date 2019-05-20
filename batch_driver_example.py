@@ -36,8 +36,7 @@ from batchwrapper.azbatch import AzureBatch
 if __name__ == '__main__':
 
     start_time = datetime.datetime.now().replace(microsecond=0)
-    print('Sample start: {}'.format(start_time))
-    print()
+    print('Start time: {}'.format(start_time))
 
 
 
@@ -56,18 +55,21 @@ if __name__ == '__main__':
     app = storage.getAppResourceFiles()
     input_files = storage.getAppInputFiles()
 
+    #my_pool = "azpool_155836035085950"
 
-    my_batch.delete_all_pools()
-
-    my_pool = "azpool_1558014841"
-
-    #my_batch.use_exisiting_pool(my_pool)
+    my_pool = my_batch.get_available_pool()
     my_batch.repurpose_existing_pool(my_pool,app, "task.py", input_files)
 
+    #my_batch.use_exisiting_pool(my_pool)
 
 
+
+    #my_batch.delete_all_pools()
 
     #my_batch.create_pool(app_resources=app, app_name="task.py", input_resources=input_files)
+
+
+
 
 
     job_id = my_batch.create_a_job()

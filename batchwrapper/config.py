@@ -43,6 +43,7 @@ def getRandomizer():
 
 def find_file_path(name, path="../../.."):
     for root, dirs, files in os.walk(path):
+        ####print("{} {} {}".format(root, dirs, files))
         if name in files:
             return os.path.join(root, name)
 

@@ -129,6 +129,14 @@ class AzureBatch():
         for n in pool_list:
             self.delete_pool(n)
 
+    def get_available_pool(self):
+
+        pool_list = []
+        pool_paged = self.batch_client.pool.list()
+        for pool_name in pool_paged:
+            return pool_name.id
+
+        return ''
 
 
     def repurpose_existing_pool(self, pool='', app_resources='', app_name='', input_resources=''):
@@ -161,6 +169,9 @@ class AzureBatch():
 
         self.batch_client.task.add_collection(job_id, tasks)
 
+        print("Going to asleep after delete - for 60 seconds")
+        time.sleep(60)
+        print("Back up - going to repurpose the system now")
 
         #we need to create a new job now
         tasks.clear()
@@ -184,12 +195,11 @@ class AzureBatch():
             print("adding file: {}".format(i.file_path))
             command.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
 
-
         print("Commands to be published: {}".format(command))
 
         resource_meta = list()
         resource_meta.extend(app_resources)
-        #resource_meta.extend(input_resources)
+        resource_meta.extend(input_resources)
 
         user = batchmodels.AutoUserSpecification(scope=batchmodels.AutoUserScope.pool, elevation_level=batchmodels.ElevationLevel.admin)
 
@@ -202,6 +212,9 @@ class AzureBatch():
 
         self.batch_client.task.add_collection(job_id, tasks)
 
+        print("Going to asleep after repurpose - for 30 seconds")
+        time.sleep(30)
+        print("Back up - read to work now")
 
         return self.pool_name
 
@@ -280,6 +293,10 @@ class AzureBatch():
         except batchmodels.batch_error.BatchErrorException as err:
             print_batch_exception(err)
             raise
+
+        print("Going to asleep after creation - for 30 seconds")
+        time.sleep(30)
+        print("Back up - read to work now")
 
         return self.pool_name
 
