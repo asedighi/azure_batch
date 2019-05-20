@@ -130,4 +130,5 @@ Once all done, you may want to upload the result file back into Azure Blob to be
         self.addFileToUpload("a.txt")
         
         
-  
+Task.json contains the blob container that the upload file will copy to.
+
