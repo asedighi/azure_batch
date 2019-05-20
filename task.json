@@ -1,5 +1,6 @@
 {
-	"TASK_INPUT_PARAM": "a.txt",
-	"TASK_OUTPUT_PARAM": "out.txt",
-	"TASK_ARGS": ""
+	"TASK_MODULES": ["task.py"],
+	"TASK_MODULES_DIRECTORY": "",
+	"TASK_ARGS": "",
+	"TASK_OUTPUT_CONTAINER" : "outputcrap"
 }

@@ -40,9 +40,11 @@ sys.path.append('/mnt/batch/tasks/shared/batchwrapper')
 from batchwrapper.config import getRandomizer
 from batchwrapper.config import AzureCredentials
 from task import TaskDo
-
+from batchwrapper.config import ReadConfig
+from batchwrapper.config import TaskConfig
+from batchwrapper.config import find_file_path
 import argparse
-
+import ntpath
 import azure.storage.blob as azureblob
 
 
@@ -60,20 +62,57 @@ class AzureBatchEngine():
         self.account_key = configuration.getStorageAccountKey()
         self.blob_client = azureblob.BlockBlobService(account_name=self.account_name, account_key=self.account_key)
 
-        self.container_name = "output-" + getRandomizer()
+        task = TaskConfig()
+
+        self.container_name = task.getOutputContainer()
         self.blob_client.create_container(self.container_name, fail_on_exist=False)
-        print("\tCreated {}... ".format(self.container_name))
+        print("\tOutput Container to be used is: {}... ".format(self.container_name))
+
+
+        self.file_list_to_upload = list()
+        self.result_to_upload = ''
 
 
     def getOutputContainer(self):
         return self.container_name
 
 
+    def readJsonConfigFile(self, name=''):
+        if name == '':
+            return
+        return ReadConfig(name)
 
 
     def do(self, *args):
         task = TaskDo()
         task.do_action(*args)
+
+    def addFileToUpload(self, file_name=''):
+
+        name = find_file_path(file_name)
+        if name != '':
+            self.file_list_to_upload.extend(name)
+
+
+    def dataToUpload(self, data=''):
+        if data != '':
+            self.result_to_upload = data
+
+
+    def uploadResultData(self):
+        pass
+
+
+    def uploadFiles(self):
+
+
+        for output_file in self.file_list_to_upload:
+
+            print('Uploading file {} to container [{}]...'.format(output_file, self.container_name))
+
+            self.blob_client.create_blob_from_path(self.container_name, ntpath.basename(output_file), output_file)
+
+
 
 
 

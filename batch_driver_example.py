@@ -40,6 +40,7 @@ if __name__ == '__main__':
     print()
 
 
+
     #Start by creating a storage interface
     storage = AzureBatchStorage()
 
@@ -56,12 +57,13 @@ if __name__ == '__main__':
     input_files = storage.getAppInputFiles()
 
 
-    #my_batch.delete_all_pools()
+    my_batch.delete_all_pools()
 
     my_pool = "azpool_1558014841"
 
-    my_batch.use_exisiting_pool(my_pool)
+    #my_batch.use_exisiting_pool(my_pool)
     my_batch.repurpose_existing_pool(my_pool,app, "task.py", input_files)
+
 
 
 

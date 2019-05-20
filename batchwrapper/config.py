@@ -41,10 +41,36 @@ def getRandomizer():
 
 
 
-def find(name, path):
+def find_file_path(name, path="../../.."):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+    return None
+
+
+class ReadConfig():
+    def __init__(self, name=''):
+        config = name
+
+        json_config = ''
+
+        if os.path.isfile(config):
+            print("Found {}".format(config))
+            with open(config) as json_data:
+                json_config = json.load(json_data)
+
+        else:
+            my_path = find_file_path(name, "../../../../")
+            print("found: {}".format(my_path))
+            if os.path.isfile(my_path):
+                with open(my_path) as json_data:
+                    json_config = json.load(json_data)
+
+        return  json_config
+
+
+
 
 class AzureCredentials():
    
@@ -54,40 +80,20 @@ class AzureCredentials():
         '''
         self.cred = ''
 
-        my_path = find("credentials.json", "../../../../../")
-
-        print("found: {}".format(my_path))
-
-        if os.path.isfile(my_path):
-            with open(my_path) as json_data:
+        if os.path.isfile('./credentials.json'):
+            print("Found credentials.json in current directory")
+            with open('./credentials.json') as json_data:
                 self.cred = json.load(json_data)
-        #
-        # if os.path.isfile('./credentials.json'):
-        #     with open('./credentials.json') as json_data:
-        #         self.cred = json.load(json_data)
-        #
-        # else:
-        #     print("credential.json was not found in .")
-        #     if os.path.isfile('batchwrapper/credentials.json'):
-        #         with open('batchwrapper/credentials.json') as json_data:
-        #             self.cred = json.load(json_data)
-        #
-        #     else:
-        #         print("credential.json was not found in batchwrapper/credentials.json")
-        #
-        #         if os.path.isfile('../batchwrapper/credentials.json'):
-        #             with open('../batchwrapper/credentials.json') as json_data:
-        #                 self.cred = json.load(json_data)
-        #         else:
-        #             print("no file was found.... where the heck is it dumbass?")
-        #             print("current directory {}".format(os.getcwd()))
 
-        # Keep presets
-
-
-        #with open('./credentials.json') as json_data:
-        #    cred = json.load(json_data)
-             
+        else:
+            my_path = find_file_path("credentials.json", "../../../../")
+            if my_path == None:
+                print("I was not able to find the credentials.json file... exiting....")
+                exit(-1)
+            print("found: {}".format(my_path))
+            if os.path.isfile(my_path):
+                with open(my_path) as json_data:
+                    self.cred = json.load(json_data)
 
         '''
         application or client id are the same
@@ -143,32 +149,21 @@ class AzureBatchConfiguration():
 
         self.batch = ''
 
-        my_path = find("batch.json", "../../../../../")
 
-        print("found: {}".format(my_path))
-
-        if os.path.isfile(my_path):
-            with open(my_path) as json_data:
+        if os.path.isfile('./batch.json'):
+            print("Found batch.json in current directory")
+            with open('./batch.json') as json_data:
                 self.batch = json.load(json_data)
 
-        # if os.path.isfile('./batch.json'):
-        #     with open('./batch.json') as json_data:
-        #         self.batch = json.load(json_data)
-        #
-        # else:
-        #     if os.path.isfile('batchwrapper/batch.json'):
-        #         with open('batchwrapper/batch.json') as json_data:
-        #             self.batch = json.load(json_data)
-        #
-        #     else:
-        #         if os.path.isfile('../batchwrapper/batch.json'):
-        #             with open('../batchwrapper/batch.json') as json_data:
-        #                 self.batch = json.load(json_data)
-        #
-        #
+        else:
+            my_path = find_file_path("batch.json", "../../../../")
 
-        #with open('./batch.json') as json_data:
-        #    batch = json.load(json_data)
+            print("Found: {}".format(my_path))
+
+            if os.path.isfile(my_path):
+                with open(my_path) as json_data:
+                    self.batch = json.load(json_data)
+
         self.batch_node_count = self.batch['BATCH_NODE_COUNT']
         self.batch_vm_size = self.batch['BATCH_VM_SIZE']
         self.batch_os_publisher = self.batch['BATCH_OS_PUBLISHER']
@@ -203,42 +198,34 @@ class TaskConfig():
     def __init__(self):
 
         self.task = ''
-        my_path = find("task.json", "../../../../../")
-
-        print("found: {}".format(my_path))
-
-        if os.path.isfile(my_path):
-            with open(my_path) as json_data:
+        if os.path.isfile('./task.json'):
+            print("Found task.json in current directory")
+            with open('./task.json') as json_data:
                 self.task = json.load(json_data)
 
-        #
-        # if os.path.isfile('./task.json'):
-        #     with open('./task.json') as json_data:
-        #         self.task = json.load(json_data)
-        #
-        # else:
-        #     if os.path.isfile('batchwrapper/task.json'):
-        #         with open('batchwrapper/task.json') as json_data:
-        #             self.task = json.load(json_data)
-        #
-        #     else:
-        #         if os.path.isfile('../batchwrapper/task.json'):
-        #             with open('../batchwrapper/task.json') as json_data:
-        #                 self.task = json.load(json_data)
+        else:
+            my_path = find_file_path("task.json", "../../../../")
 
-        #with open('task.json') as json_data:
-        #    task = json.load(json_data)
-        self.task_input_file = self.task['TASK_INPUT_PARAM']
-        self.task_output_file = self.task['TASK_OUTPUT_PARAM']
+            print("found: {}".format(my_path))
+            if os.path.isfile(my_path):
+                with open(my_path) as json_data:
+                    self.task = json.load(json_data)
+
+        self.task_modules = self.task['TASK_MODULES']
         self.task_args = self.task['TASK_ARGS']
+        self.task_output = self.task['TASK_OUTPUT_CONTAINER']
 
+        self.task_modules_dir = self.task['TASK_MODULES_DIRECTORY']
 
-    def getTaskInput(self):
-        return self.task_input_file
+    def getTaskModules(self):
+        return self.task_modules
 
-    def getTaskOutput(self):
-        return self.task_output_file
+    def getTaskModulesDir(self):
+        return self.task_modules_dir
 
     def getTaskArgs(self):
         return self.task_args
+
+    def getOutputContainer(self):
+        return self.task_output
 

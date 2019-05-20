@@ -30,6 +30,7 @@ import azure.batch.models as batchmodels
 from batchwrapper.config import AzureCredentials
 from batchwrapper.config import AzureBatchConfiguration
 from batchwrapper.config import getRandomizer
+from batchwrapper.config import find_file_path
 
 
 sys.path.append('.')
@@ -67,10 +68,26 @@ class AzureBatch():
         self.pool_os_ver = batch_config.getOSVersion()
         self.pool_engine_name = batch_config.getEngineName()
 
+        batch_json = find_file_path("batch.json")
+        print("Found batch.json in: {}".format(batch_json))
+
+        credential_json = find_file_path("credentials.json")
+        print("Found credentials.json in: {}".format(credential_json))
+
+        task_json = find_file_path("task.json")
+        print("Found task.json in: {}".format(task_json))
+
         self.my_storage.addApplicationFilePath("engine/"+batch_config.getEngineName())
-        self.my_storage.addApplicationFilePath("batchwrapper/batch.json")
+
+        #self.my_storage.addApplicationFilePath("batchwrapper/batch.json")
+        self.my_storage.addApplicationFilePath(batch_json)
+
         self.my_storage.addApplicationFilePath("batchwrapper/__init__.py")
-        self.my_storage.addApplicationFilePath("batchwrapper/credentials.json")
+
+        #self.my_storage.addApplicationFilePath("batchwrapper/credentials.json")
+        self.my_storage.addApplicationFilePath(credential_json)
+        self.my_storage.addApplicationFilePath(task_json)
+
         self.my_storage.addApplicationFilePath("batchwrapper/config.py")
 
         self.my_storage.uploadApplicationFiles()
@@ -156,6 +173,7 @@ class AzureBatch():
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("batch.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("task.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("config.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("__init__.py"),
@@ -167,7 +185,7 @@ class AzureBatch():
             command.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
 
 
-        print("commands to be published: {}".format(command))
+        print("Commands to be published: {}".format(command))
 
         resource_meta = list()
         resource_meta.extend(app_resources)
@@ -202,18 +220,6 @@ class AzureBatch():
             print("App name cannot be empty.  HINT: This python file needs to inherit from AzureBatchEngine")
             exit(-1)
 
-        # Specify the commands for the pool's start task. The start task is run
-        # on each node as it joins the pool, and when it's rebooted or re-imaged.
-        # We use the start task to prep the node for running our task script.
-
-        #task_commands = list()
-
-        #temp = list()
-
-        #for i in input_resources:
-        #    temp.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
-
-
         task_commands = [
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
@@ -221,6 +227,7 @@ class AzureBatch():
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("batch.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("task.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("config.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("__init__.py"),
@@ -319,10 +326,6 @@ class AzureBatch():
             )
 
         self.batch_client.task.add_collection(job_id, tasks)
-
-
-
-
 
 
 

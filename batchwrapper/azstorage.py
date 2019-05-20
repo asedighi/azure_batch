@@ -126,7 +126,7 @@ class AzureStorage():
             self.blob_client.generate_container_shared_access_signature(
                 container_name,
                 permission=blob_permissions,
-                expiry=datetime.datetime.utcnow() + datetime.timedelta(hours=2))
+                expiry=datetime.datetime.utcnow() + datetime.timedelta(hours=6))
 
         return container_sas_token
 
