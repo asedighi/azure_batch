@@ -199,7 +199,7 @@ class TaskConfig():
     def __init__(self):
 
         self.task = ''
-        if os.path.isfile('./task.json'):
+        if os.path.isfile('tasks/task.json'):
             print("Found task.json in current directory")
             with open('./task.json') as json_data:
                 self.task = json.load(json_data)

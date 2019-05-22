@@ -78,6 +78,7 @@ class AzureBatch():
         print("Found task.json in: {}".format(task_json))
 
         self.my_storage.addApplicationFilePath("engine/"+batch_config.getEngineName())
+        self.my_storage.addApplicationFilePath("engine/taskfinder.py")
 
         #self.my_storage.addApplicationFilePath("batchwrapper/batch.json")
         self.my_storage.addApplicationFilePath(batch_json)
@@ -180,16 +181,20 @@ class AzureBatch():
         command = [
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(app_name),
+            'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(app_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("batch.json"),
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("task.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format("task.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("config.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("__init__.py"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("__init__.py"),
         ]
+
 
         for i in input_resources:
             print("adding file: {}".format(i.file_path))
@@ -236,14 +241,17 @@ class AzureBatch():
         task_commands = [
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(app_name),
+            'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(app_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("batch.json"),
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("task.json"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format("task.json"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("config.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("__init__.py"),
+            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("__init__.py"),
         ]
 

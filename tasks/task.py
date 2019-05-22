@@ -26,18 +26,16 @@
 
 import os
 from engine.azbatchengine import AzureBatchEngine
-class TaskDo(AzureBatchEngine):
-    def __init__(self):
-        AzureBatchEngine.__init__(self)
-        print('Hello world\n')
 
 
-    def do_action(self, *args):
-        print('Hello world from do_action')
-        print("the current working directory is: {}".format(os.getcwd()))
 
-        for i in args:
-            print("i need to do something to: {}".format(i))
+def do_action(engine, *args):
+
+    print('Hello world from do_action')
+    print("the current working directory is: {}".format(os.getcwd()))
+
+    for i in args:
+        print("i need to do something to: {}".format(i))
 
 
-        self.addFileToUpload("a.txt")
+    engine.addFileToUpload("a.txt")

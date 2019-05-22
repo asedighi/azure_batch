@@ -28,14 +28,13 @@
 
 import sys
 
+
 sys.path.append('.')
 sys.path.append('..')
 sys.path.append('/mnt/batch/tasks/shared/')
 sys.path.append('/mnt/batch/tasks/shared/engine')
 sys.path.append('/mnt/batch/tasks/shared/batchwrapper')
-
-#print ("working sys path is: ")
-#print (sys.path)
+sys.path.append('/mnt/batch/tasks/shared/tasks')
 
 from batchwrapper.config import getRandomizer
 from batchwrapper.config import AzureCredentials
@@ -45,6 +44,10 @@ from batchwrapper.config import find_file_path
 import argparse
 import ntpath
 import azure.storage.blob as azureblob
+from engine.taskfinder import task_importer
+
+
+
 
 class AzureBatchEngine():
 
@@ -80,9 +83,8 @@ class AzureBatchEngine():
 
 
     def do(self, *args):
-        #task = TaskDo()
 
-        self.do_action(*args)
+        task_importer(self, "../tasks", *args)
 
         #self.uploadResultData()
         self.uploadFiles()
@@ -129,9 +131,10 @@ if __name__ == '__main__':
 
     print("received input: {}".format(sys.argv[1:]))
 
-    from task import TaskDo
+    #from task import TaskDo
 
-    engine = TaskDo()
-    engine.do(sys.argv[1:])
+    engine = AzureBatchEngine()
+    ####engine.do(sys.argv[1:])
+    engine.do(['a.txt'])
 
 

@@ -48,7 +48,7 @@ if __name__ == '__main__':
     storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
-    storage.addApplicationFilePath("task.py")
+    storage.addApplicationFilePath("tasks/task.py")
     storage.uploadApplicationFiles()
 
     my_batch = AzureBatch(storage)
