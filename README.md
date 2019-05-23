@@ -7,7 +7,7 @@ The other purpose of this project will be to make batch more "real-time" and hav
 
 
 
-#Features:
+# Features:
 
 * Get up and running with a complex Azure Batch application in minutes.  
 * Create a pool, run tasks, run a workflow, delete and clean up, all with just a few function calls. 
@@ -26,7 +26,7 @@ The other purpose of this project will be to make batch more "real-time" and hav
 
   
 
-#How to use
+# How to use
 you need to create/update credentials.json.  The template is there, but you need to add proper values
 
 
@@ -107,7 +107,7 @@ In this example, task.py will be called twice: once with a.txt and once with b.t
 
 
 
-#Tasks and the tasks Module
+# Tasks and the tasks Module
 
 tasks module will hold the tasks to be executed.  Currently, I have put two simple tasks in that module.  You need to create your own.
 ```
