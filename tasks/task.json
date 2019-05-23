@@ -1,5 +1,5 @@
 {
-	"TASK_MODULES": ["task.py"],
+	"TASK_MODULES": ["1_task.py", "2_task.py"],
 	"TASK_MODULES_DIRECTORY": "",
 	"TASK_ARGS": "",
 	"TASK_OUTPUT_CONTAINER" : "outputcrap"

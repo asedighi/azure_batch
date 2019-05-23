@@ -48,17 +48,19 @@ if __name__ == '__main__':
     storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
-    storage.addApplicationFilePath("tasks/task.py")
-    storage.uploadApplicationFiles()
+    storage.addTaskFilePath("tasks/1_task.py")
+    storage.addTaskFilePath("tasks/2_task.py")
+    storage.uploadTaskFiles()
 
     my_batch = AzureBatch(storage)
-    app = storage.getAppResourceFiles()
-    input_files = storage.getAppInputFiles()
+    app = storage.getApplicationFiles()
+    input_files = storage.getApplicationInputFiles()
+    tasks = storage.getBatchTaskFiles()
 
     #my_pool = "azpool_155836035085950"
 
     my_pool = my_batch.get_available_pool()
-    my_batch.repurpose_existing_pool(my_pool,app, "task.py", input_files)
+    my_batch.repurpose_existing_pool(my_pool,app, input_files, tasks)
 
     #my_batch.use_exisiting_pool(my_pool)
 
@@ -66,7 +68,7 @@ if __name__ == '__main__':
 
     #my_batch.delete_all_pools()
 
-    #my_batch.create_pool(app_resources=app, app_name="task.py", input_resources=input_files)
+    #my_batch.create_pool(app_resources=app, input_resources=input_files, task_files=tasks)
 
 
 

@@ -28,14 +28,11 @@ import os
 from engine.azbatchengine import AzureBatchEngine
 
 
-
-def do_action(engine, *args):
-
-    print('Hello world from do_action')
-    print("the current working directory is: {}".format(os.getcwd()))
+def do_action(engine, args = []):
+    print('Hello world from do_action #2')
 
     for i in args:
         print("i need to do something to: {}".format(i))
 
 
-    engine.addFileToUpload("a.txt")
+    return ["this is test 2"]

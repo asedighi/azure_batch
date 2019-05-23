@@ -47,13 +47,13 @@ import azure.storage.blob as azureblob
 from engine.taskfinder import task_importer
 
 
-
+import os
 
 class AzureBatchEngine():
 
     def __init__(self):
 
-
+        os.chdir('/mnt/batch/tasks/shared/engine')
 
         configuration = AzureCredentials()
 
@@ -65,7 +65,7 @@ class AzureBatchEngine():
 
         self.container_name = task.getOutputContainer()
         self.blob_client.create_container(self.container_name, fail_on_exist=False)
-        print("\tOutput Container to be used is: {}... ".format(self.container_name))
+        print("Output Container to be used is: {}... ".format(self.container_name))
 
 
         self.file_list_to_upload = list()
@@ -82,9 +82,11 @@ class AzureBatchEngine():
         return ReadConfig(name)
 
 
-    def do(self, *args):
+    def do(self, args = []):
 
-        task_importer(self, "../tasks", *args)
+
+
+        task_importer(self, "../tasks", args)
 
         #self.uploadResultData()
         self.uploadFiles()
@@ -129,12 +131,9 @@ class AzureBatchEngine():
 
 if __name__ == '__main__':
 
-    print("received input: {}".format(sys.argv[1:]))
-
-    #from task import TaskDo
+    print("Received input: {}".format(sys.argv[1:]))
 
     engine = AzureBatchEngine()
-    ####engine.do(sys.argv[1:])
-    engine.do(['a.txt'])
+    engine.do(sys.argv[1:])
 
 

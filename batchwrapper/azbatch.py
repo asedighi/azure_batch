@@ -140,7 +140,7 @@ class AzureBatch():
         return ''
 
 
-    def repurpose_existing_pool(self, pool='', app_resources='', app_name='', input_resources=''):
+    def repurpose_existing_pool(self, pool='', app_resources='', input_resources='', tasks_files=''):
 
         self.use_exisiting_pool(pool)
 
@@ -149,9 +149,6 @@ class AzureBatch():
                 "App resources cannot be empty.  HINT: you get this object from AzureBatchStorage.getAppResourceFiles")
             exit(-1)
 
-        if app_name == '':
-            print("App name cannot be empty.  HINT: This python file needs to inherit from AzureBatchEngine")
-            exit(-1)
 
         tasks = list()
 
@@ -182,7 +179,6 @@ class AzureBatch():
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(app_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
@@ -195,6 +191,11 @@ class AzureBatch():
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("__init__.py"),
         ]
 
+        for j in tasks_files:
+            print("adding application: {}".format(j.file_path))
+            command.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(j.file_path)])
+
+
 
         for i in input_resources:
             print("adding file: {}".format(i.file_path))
@@ -204,7 +205,9 @@ class AzureBatch():
 
         resource_meta = list()
         resource_meta.extend(app_resources)
+        resource_meta.extend(tasks_files)
         resource_meta.extend(input_resources)
+
 
         user = batchmodels.AutoUserSpecification(scope=batchmodels.AutoUserScope.pool, elevation_level=batchmodels.ElevationLevel.admin)
 
@@ -223,7 +226,7 @@ class AzureBatch():
 
         return self.pool_name
 
-    def create_pool(self, app_resources='', app_name='', input_resources=''):
+    def create_pool(self, app_resources='', app_name='', input_resources='', task_files=''):
 
         random = getRandomizer()
         self.pool_name = 'azpool_' + random
@@ -242,7 +245,6 @@ class AzureBatch():
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
-            'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(app_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
@@ -254,6 +256,12 @@ class AzureBatch():
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks/'.format("__init__.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/'.format("__init__.py"),
         ]
+
+
+        for j in task_files:
+            print("adding application: {}".format(j.file_path))
+            task_commands.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR/tasks'.format(j.file_path)])
+
 
         for i in input_resources:
             print("adding file: {}".format(i.file_path))
@@ -279,6 +287,7 @@ class AzureBatch():
 
         resource_meta = list()
         resource_meta.extend(app_resources)
+        resource_meta.extend(task_files)
         resource_meta.extend(input_resources)
 
 

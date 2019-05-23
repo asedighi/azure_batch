@@ -4,5 +4,6 @@
 	"BATCH_OS_PUBLISHER":"Canonical",
 	"BATCH_OS_TYPE": "UbuntuServer",
 	"BATCH_OS_VERSION": "16",
-    "BATCH_ENGINE_NAME": "azbatchengine.py"
+    "BATCH_ENGINE_NAME": "azbatchengine.py",
+	"BATCH_DEBUG_MODE": "false"
 }

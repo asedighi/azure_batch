@@ -8,13 +8,18 @@ import ntpath
 from os import walk
 from inspect import getmembers, isfunction
 
-def task_importer(engine, task_dir, *args):
+def task_importer(engine, task_dir, args = []):
 
     module_name = ntpath.basename(task_dir)
 
+    cwd = os.getcwd()
+    print("current working dir: {}".format(cwd))
+
+
     tasks = []
-    for (dirpath, dirnames, filenames) in walk(task_dir):
+    for (dirpath, dirnames, filenames) in walk(cwd +"/"+ task_dir):
         for f in filenames:
+            print("currently found: {}".format(f))
             if isfile(os.path.join(dirpath, f)) and not (f.endswith('__init__.py') or f.endswith('json')):
                 tasks.extend([f])
         break
@@ -23,7 +28,11 @@ def task_importer(engine, task_dir, *args):
     """
     find task modules and import them
     """
-    for i in tasks:
+    #tasks.reverse()
+
+    input_data = args
+
+    for i in tasks[::-1]:
         try:
             mod_to_import = module_name + "." + os.path.splitext(i)[0]
             print("About to import: {}".format(mod_to_import))
@@ -36,10 +45,14 @@ def task_importer(engine, task_dir, *args):
 
         print(functions_list)
 
-        mod.do_action(engine, *args)
+        input_data = mod.do_action(engine, input_data)
 
+
+    print("The final args is: {}".format(input_data))
 
 
 
 if __name__ == "__main__":
-    module, modClass = task_importer("../tasks")
+
+    args = ['a.txt', 'b.txt']
+    task_importer('', "../tasks", args)
