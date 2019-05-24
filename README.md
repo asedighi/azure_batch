@@ -43,11 +43,11 @@ You need to create/update credentials.json.  The template is there, but you need
 
 ```
 {
-	"BATCH_ACCOUNT_NAME":"batch account name",
-	"BATCH_ACCOUNT_KEY": "batch key here",
-	"BATCH_ACCOUNT_URL":"https://<account name>.<eastus>.batch.azure.com",
-	"STORAGE_ACCOUNT_NAME": "name here",
-	"STORAGE_ACCOUNT_KEY": "key here"
+    "BATCH_ACCOUNT_NAME":"batch account name",
+    "BATCH_ACCOUNT_KEY": "batch key here",
+    "BATCH_ACCOUNT_URL":"https://<account name>.<eastus>.batch.azure.com",
+    "STORAGE_ACCOUNT_NAME": "name here",
+    "STORAGE_ACCOUNT_KEY": "key here"
 }
 ```
 
@@ -55,77 +55,81 @@ You need to create/update credentials.json.  The template is there, but you need
 The rest is just a few lines of code.  batch_driver_example.py shows how this can be accomplished.  
 
 **Start by creating a storage interface**
-    
-    storage = AzureBatchStorage()
-
+```    
+storage = AzureBatchStorage()
+```
 **Upload your input resources to the storage**
-
-    storage.addInputFilePath("a.txt")
-    storage.addInputFilePath("b.txt")
-    
+```
+storage.addInputFilePath("a.txt")
+storage.addInputFilePath("b.txt")
+```    
 **Upload the input files**
-    storage.uploadInputFiles()
-
+```
+storage.uploadInputFiles()
+```
 
 **Upload your task file**
 This file needs to implement a method called do_action(self, *argv).  This method is your main business logic.  See the end of this readme to see how tasks are managed.
 ```
-    storage.addTaskFilePath("tasks/1_task.py")
-    storage.addTaskFilePath("tasks/2_task.py")
+storage.addTaskFilePath("tasks/1_task.py")
+storage.addTaskFilePath("tasks/2_task.py")
 ```
    
 
 **Upload your application/business logic to Storage**
 ```
-    storage.uploadTaskFiles()
+storage.uploadTaskFiles()
 ```    
     
 **Create a batch instance**
-
-    my_batch = AzureBatch(storage)
+```
+my_batch = AzureBatch(storage)
+```
     
 **Register your input and application files with Batch**
 "getApplicationFiles" should go away in the future releases.  this method represents a background process that the user does not need to deal with.
 ```
-    app = storage.getApplicationFiles()
-    input_files = storage.getApplicationInputFiles()
-    tasks = storage.getBatchTaskFiles()
+app = storage.getApplicationFiles()
+input_files = storage.getApplicationInputFiles()
+tasks = storage.getBatchTaskFiles()
 ```
 
 **Create a pool**
-
-    my_batch.create_pool(app_resources=app, input_resources=input_files, task_files=tasks)
-
+```
+my_batch.create_pool(app_resources=app, input_resources=input_files, task_files=tasks)
+```
 
 
 **You can use an already existing pool**
 This will keep everything intact.  Nothing will change
 
-
-    my_pool = "azpool_1558014841"
-    my_batch.use_exisiting_pool(my_pool)
-
+```
+my_pool = "azpool_1558014841"
+my_batch.use_exisiting_pool(my_pool)
+```
 
 **Or, you can re-purpose an existing pool with new input files/exe**
-
-    my_batch.repurpose_existing_pool(my_pool,app, input_files, tasks)
-
+```
+my_batch.repurpose_existing_pool(my_pool,app, input_files, tasks)
+```
 
 **Create a new job**
-
-    job_id = my_batch.create_a_job()
-
+```
+job_id = my_batch.create_a_job()
+```
 
 **Create a list of tasks/task input**
 
 In this example, task.py will be called twice: once with a.txt and once with b.txt as input
-    
-    args = ['a.txt' , 'b.txt']
+```    
+args = ['a.txt' , 'b.txt']
+```
 
 **Run the jobs/tasks on the newly created pool**
 
-    my_batch.add_tasks_to_job(job_id, args)
-
+```
+my_batch.add_tasks_to_job(job_id, args)
+```
 
 
 
@@ -145,39 +149,37 @@ I the task files do not have a number (say if it is only one task that needs to 
 taskfinder.py searchs the tasks directory for any python file.  The python file needs be like the following:
 
 ````
-    import os
-    def do_action(engine, *args):
-    
-        print('Hello world from do_action #1')
-        print("the current working directory is: {}".format(os.getcwd()))
-    
-        for i in args:
-            print("i need to do something to: {}".format(i))
-    
-        engine.addFileToUpload("a.txt")
-        return "this is a test"
+import os
+def do_action(engine, *args):
 
+    print('Hello world from do_action #1')
+    print("the current working directory is: {}".format(os.getcwd()))
 
+    for i in args:
+        print("i need to do something to: {}".format(i))
+
+    engine.addFileToUpload("a.txt")
+    return "this is a test"
 ````
 
 do_action is the method that represents the business logic, and that is the method that will get called.  The arguments (args) are past in from the client driver shown above.  
 
 ```
-    def do_action(self, *args):
-        print('Hello world from do_action')
-        print("the current working directory is: {}".format(os.getcwd()))
+def do_action(self, *args):
+    print('Hello world from do_action')
+    print("the current working directory is: {}".format(os.getcwd()))
 
-        for i in args:
-            print("i need to do something to: {}".format(i))
-        
-        
-        #### Do something here...
+    for i in args:
+        print("i need to do something to: {}".format(i))
+    
+    
+    #### Do something here...
 ```
 Once all done, you may want to upload the result file back into Azure Blob to be picked up (by the driver again perhaps).  
 The return value will be passed to the next task in the list.   
 ```
-        self.addFileToUpload(<<path of some results file you want to upload>>)    
-        return "this is a test"
+self.addFileToUpload(<<path of some results file you want to upload>>)    
+return "this is a test"
 ```   
 For exmple, 1_task.py is called first.  the do_action method is passed a value by the driver (my_batch.add_tasks_to_job(job_id, args).
 
