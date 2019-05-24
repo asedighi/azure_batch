@@ -19,15 +19,37 @@ The other purpose of this project will be to make batch more "real-time" and hav
 * Pass data between tasks of a workflow
 * File and data managment for input to each task and results
 * Automatically uploaded results, and result files to Azure Blob
-* Driver dowloads results from Azure Blob (TODO)
+* Driver downloads results from Azure Blob (TODO)
 * Error Handling (TODO)
 * Configure the pool, type, etc directly by using simple config files. etc.
 * Update/overwrite of config files is possible
 
   
+# Still on the todo list:
+* Method names need to be changed to comply with Python.  They are "java-style" names
+* Create a package that can be imported as opposed to importing the src code
+* Better documentation - src code documentation
+* Clean the "common" package.  It is taken from one of the Azure examples that needs to be cleaned up
+* Integrate with things like log analytics, storage, etc to move the logs, output, etc
+* Pool management - increase/decrease size
+* Download the results from the output bucket
+* Error handling and retries for failed tasks
+* Move the hardcoded params to config files - potentillay put things in batch.json
+
+
 
 # How to use
-you need to create/update credentials.json.  The template is there, but you need to add proper values
+You need to create/update credentials.json.  The template is there, but you need to add proper values
+
+```
+{
+	"BATCH_ACCOUNT_NAME":"batch account name",
+	"BATCH_ACCOUNT_KEY": "batch key here",
+	"BATCH_ACCOUNT_URL":"https://<account name>.<eastus>.batch.azure.com",
+	"STORAGE_ACCOUNT_NAME": "name here",
+	"STORAGE_ACCOUNT_KEY": "key here"
+}
+```
 
 
 The rest is just a few lines of code.  batch_driver_example.py shows how this can be accomplished.  
@@ -123,22 +145,17 @@ I the task files do not have a number (say if it is only one task that needs to 
 taskfinder.py searchs the tasks directory for any python file.  The python file needs be like the following:
 
 ````
-import os
-
-
-def do_action(engine, *args):
-
-    print('Hello world from do_action #1')
-    print("the current working directory is: {}".format(os.getcwd()))
-
-    for i in args:
-        print("i need to do something to: {}".format(i))
-
-
-
-    engine.addFileToUpload("a.txt")
-
-    return "this is a test"
+    import os
+    def do_action(engine, *args):
+    
+        print('Hello world from do_action #1')
+        print("the current working directory is: {}".format(os.getcwd()))
+    
+        for i in args:
+            print("i need to do something to: {}".format(i))
+    
+        engine.addFileToUpload("a.txt")
+        return "this is a test"
 
 
 ````
