@@ -45,7 +45,7 @@ import argparse
 import ntpath
 import azure.storage.blob as azureblob
 from engine.taskfinder import task_importer
-
+from subprocess import *
 
 import os
 
@@ -81,6 +81,24 @@ class AzureBatchEngine():
             return
         return ReadConfig(name)
 
+    def java_runner(*args) -> list:
+        process = Popen(['java', '-jar'] + list(args), stdout=PIPE, stderr=PIPE)
+        ret = []
+        while process.poll() is None:
+            line = process.stdout.readline()
+            if line != b'' and len(line) > 0 and line.endswith(b'\n'):
+                ret.append(line[:-1].decode('utf-8'))
+
+        # for i in range(len(ret)):
+        #    print("line: {}:{}".format(i,ret[i]))
+        stdout, stderr = process.communicate()
+
+        ret += stdout.split(b'\n')
+        if stderr != b'':
+            ret += stderr.split(b'\n')
+        ret.remove(b'')
+        return ret
+
 
     def do(self, args = []):
 
@@ -100,7 +118,7 @@ class AzureBatchEngine():
         #/mnt/batch/tasks/workitems/<job id>/job-<#>/<task id>/wd
         #/mnt/batch/tasks/shared
         name = find_file_path(file_name, "../../../../../")
-        print("found file to upload: {}".format(name))
+        print("Found file to upload: {}".format(name))
         if name != '':
             self.file_list_to_upload.extend([name])
 
@@ -114,7 +132,13 @@ class AzureBatchEngine():
 
 
     def uploadResultData(self):
-        pass
+
+        filen = "result_" + getRandomizer() + ".txt"
+        if self.result_to_upload != '':
+            text_file = open(filen, "w")
+            n = text_file.write(self.result_to_upload)
+            text_file.close()
+            self.dataToUpload(filen)
 
 
     def uploadFiles(self):

@@ -267,7 +267,13 @@ class AzureBatch():
             print("adding file: {}".format(i.file_path))
             task_commands.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
 
-        task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/get-pip.py | python', 'pip install azure'])
+        requirements_file = find_file_path("requirements.txt")
+        print("Found requirements.txt in: {}".format(requirements_file))
+
+        if(requirements_file != None):
+            task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/get-pip.py | python', 'pip install -r '+ requirements_file])
+        else:
+            task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/get-pip.py | python', 'pip install azure'])
 
 
 

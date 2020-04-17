@@ -35,6 +35,7 @@ from batchwrapper.azbatch import AzureBatch
 
 if __name__ == '__main__':
 
+
     start_time = datetime.datetime.now().replace(microsecond=0)
     print('Start time: {}'.format(start_time))
 
@@ -43,13 +44,13 @@ if __name__ == '__main__':
     #Start by creating a storage interface
     storage = AzureBatchStorage()
 
-
-    storage.addInputFilePath("a.txt")
-    storage.addInputFilePath("b.txt")
+    storage.addInputFilePath("requirements.txt")
+    storage.addInputFilePath("pi.jar")
+    #storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
     storage.addTaskFilePath("tasks/1_task.py")
-    storage.addTaskFilePath("tasks/2_task.py")
+    #storage.addTaskFilePath("tasks/2_task.py")
     storage.uploadTaskFiles()
 
     my_batch = AzureBatch(storage)
