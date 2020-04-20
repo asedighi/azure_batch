@@ -102,9 +102,11 @@ class AzureBatchEngine():
 
     def do(self, args = []):
 
+        in_data = ' '.join(args[1:])
 
+        task_command = (args[0], in_data)
 
-        task_importer(self, "../tasks", args)
+        task_importer(self, "../tasks", task_command)
 
         #self.uploadResultData()
         self.uploadFiles()
@@ -155,7 +157,17 @@ class AzureBatchEngine():
 
 if __name__ == '__main__':
 
+
     print("Received input: {}".format(sys.argv[1:]))
+
+    all_input = sys.argv[1:];
+
+    data_input = ' '.join(all_input[1:])
+
+    foo = (all_input[0], data_input)
+
+    print(foo)
+    exit(1)
 
     engine = AzureBatchEngine()
     engine.do(sys.argv[1:])

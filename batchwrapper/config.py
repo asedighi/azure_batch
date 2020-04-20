@@ -230,3 +230,72 @@ class TaskConfig():
     def getOutputContainer(self):
         return self.task_output
 
+class TaskManifest():
+
+    ## return a list of tuples (task executable, task input)
+
+    def __init__(self, manifest_file: str):
+
+        self.manifest = ''
+        if os.path.isfile(manifest_file):
+            print("Found {} in current directory".format(manifest_file))
+            with open(manifest_file) as json_data:
+                self.manifest = json.load(json_data)
+
+        else:
+            my_path = find_file_path(manifest_file, "../../../../")
+
+            print("Found manifest in: {}".format(my_path))
+            if os.path.isfile(my_path):
+                with open(my_path) as json_data:
+                    self.manifest = json.load(json_data)
+
+        self.tasks = self.manifest['JOB_MANIFEST']
+
+
+    def get_tasks(self) -> list:
+
+        json_data = []  # your list with json objects (dicts)
+
+        for item in json_data:
+            for data_item in item['data']:
+                print
+                data_item['name'], data_item['value']
+
+        task_list = list()
+
+
+        all_tasks = self.tasks
+
+        for item in all_tasks:
+            task_list.append((item['TASK_MODULE'], item['TASK_INPUT']))
+
+
+        print(task_list)
+
+        return task_list
+'''
+
+
+        for i in range(len(all_tasks)):
+            key = i['TASK_MODULE']
+            val = i['TASK_INPUT']
+            task_list.append((key,val))
+
+        print(task_list)
+        return task_list
+
+'''
+
+if __name__ == '__main__':
+
+
+    manifest = TaskManifest("task.json")
+    tasks = manifest.get_tasks()
+
+
+    # i have a list of (task exe file name, task input)
+
+    for task_id, task_params in enumerate(tasks):
+        print(task_id, task_params)
+

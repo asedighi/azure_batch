@@ -31,6 +31,7 @@ from batchwrapper.config import AzureCredentials
 from batchwrapper.config import AzureBatchConfiguration
 from batchwrapper.config import getRandomizer
 from batchwrapper.config import find_file_path
+from batchwrapper.config import TaskManifest
 
 
 sys.path.append('.')
@@ -343,31 +344,44 @@ class AzureBatch():
         return job_id
 
 
-    def add_tasks_to_job(self, job_id, input_files):
+    def add_task_to_job(self, job_id: str, task_id: int, input_command: tuple):
         """
         Adds a task for each input file in the collection to the specified job.
         :param str job_id: The ID of the job to which to add the tasks.
         :param  input_files: more like input to the exe running on the engine.
         task.py a.txt (a.txt is the input to the exe and should get passed as input
         """
-        tasks = list()
 
-        for task_id, task_input in enumerate(input_files):
-            print('Adding {} to job {}...'.format(task_input, job_id))
+        task_command = ' '.join(input_command)
 
-            command = ['python $AZ_BATCH_NODE_SHARED_DIR/engine/{} {}'.format(self.pool_engine_name, task_input)]
+        print('Adding task {} to job {}...{}'.format(task_id, job_id, task_command))
 
-            print("Command to be executed is: {}".format(command))
-            tasks.append(batch.models.TaskAddParameter(
-                    '{}_{}'.format(str(job_id), str(task_id)),
-                    common.helpers.wrap_commands_in_shell('linux', command),
-                    #resource_files=[i.file_path]
-                    )
-            )
+        command = ['python $AZ_BATCH_NODE_SHARED_DIR/engine/{} {}'.format(self.pool_engine_name, task_command)]
+
+        tasks = []
+
+        print("Command to be executed is: {}".format(command))
+        tasks.append(batch.models.TaskAddParameter(
+                '{}_{}'.format(str(job_id), str(task_id)),
+                common.helpers.wrap_commands_in_shell('linux', command),
+                #resource_files=[i.file_path]
+                )
+        )
 
         self.batch_client.task.add_collection(job_id, tasks)
 
 
+    def add_tasks_from_manifest_file(self, job_id: str, manifest_name: str):
+
+        manifest = TaskManifest(manifest_name)
+
+        tasks = manifest.get_tasks()
+
+        # i have a list of (task exe file name, task input)
+
+
+        for task_id, task_params in enumerate(tasks):
+            self.add_task_to_job(job_id, task_id, task_params)
 
 
 def print_batch_exception(batch_exception):

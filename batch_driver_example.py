@@ -51,6 +51,7 @@ if __name__ == '__main__':
 
     storage.addTaskFilePath("tasks/1_task.py")
     #storage.addTaskFilePath("tasks/2_task.py")
+
     storage.uploadTaskFiles()
 
     my_batch = AzureBatch(storage)
@@ -78,7 +79,10 @@ if __name__ == '__main__':
     job_id = my_batch.create_a_job()
 
 
-    args = ['a.txt' , 'b.txt']
+    args = ('1_task.py' , 'b.txt')
 
-    my_batch.add_tasks_to_job(job_id, args)
+    my_batch.add_task_to_job(job_id, 1 , args)
+
+
+    my_batch.add_tasks_from_manifest_file(job_id, "task.json")
 

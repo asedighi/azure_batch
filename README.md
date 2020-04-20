@@ -120,16 +120,49 @@ job_id = my_batch.create_a_job()
 
 **Create a list of tasks/task input**
 
-In this example, task.py will be called twice: once with a.txt and once with b.txt as input
+This feature was completely redone to allow multi-task submission via a manifest file.  
+Tasks are now passed in as a tuple:
 ```    
-args = ['a.txt' , 'b.txt']
+args = ('1_task.py' , 'any input you want to pass to the task')
 ```
+
+The above line calls 1_task.py with the 'any input you want to pass to the task' as the input to the task.   
+
+A better example would be:
+```    
+args = ('1_task.py' , 'input.txt 2 34')
+```
+
+In the above case, 1_task.py gets called with the argv of "input.txt 2 34".  It is up to the task to determine 
+what each of these inputs mean.   
 
 **Run the jobs/tasks on the newly created pool**
 
 ```
 my_batch.add_tasks_to_job(job_id, args)
 ```
+
+**Create tasks from manifest file**
+You can not submit all the tasks via a single (or multiple if you choose) manifest file.  
+The example "task.json" shows an example manifest file.  All the tasks are listed in the manifest file.  The manifest 
+file is executed as follows:
+
+```
+my_batch.add_tasks_from_manifest_file(job_id, "task.json")
+``` 
+
+# Java support
+This API now supports JAVA.   A jar file can be called from the one of the tasks files, and the output to be treated
+the same as python.  
+```
+
+    jar_args = ['pi.jar']  # Any number of args to be passed to the jar file
+    result = engine.java_runner(*jar_args)
+
+```
+
+The result comes back from the stdout and stderr to the calling program.  This api can be combined with the previous 
+to call both python and Java from the same program.  (exampe to follow)
 
 
 

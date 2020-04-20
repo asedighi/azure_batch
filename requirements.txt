@@ -1,1 +1,3 @@
-azure
+azure-storage-blob
+azure-batch
+

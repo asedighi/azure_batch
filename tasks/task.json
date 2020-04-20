@@ -2,5 +2,27 @@
 	"TASK_MODULES": ["1_task.py", "2_task.py"],
 	"TASK_MODULES_DIRECTORY": "",
 	"TASK_ARGS": "",
-	"TASK_OUTPUT_CONTAINER" : "outputcrap"
+	"TASK_OUTPUT_CONTAINER" : "outputcrap",
+	"JOB_MANIFEST" :
+					[
+						{
+							"TASK_MODULE" : "1_task.py",
+							"TASK_INPUT" : "input 1"
+						},
+
+						{
+							"TASK_MODULE" : "1_task.py",
+							"TASK_INPUT" : "input 2"
+						},
+
+						{
+							"TASK_MODULE" : "1_task.py",
+							"TASK_INPUT" : "input 3"
+						},
+
+						{
+							"TASK_MODULE" : "1_task.py",
+							"TASK_INPUT" : "input 4"
+						}
+					]
 }

@@ -8,7 +8,11 @@ import ntpath
 from os import walk
 from inspect import getmembers, isfunction
 
-def task_importer(engine, task_dir, args = []):
+
+## changing the arg to a tupple.  (task_name, taskinput)
+
+#def task_importer(engine, task_dir, args = []):
+def task_importer(engine, task_dir, args=()):
 
     module_name = ntpath.basename(task_dir)
 
@@ -19,10 +23,14 @@ def task_importer(engine, task_dir, args = []):
     tasks = []
     for (dirpath, dirnames, filenames) in walk(cwd +"/"+ task_dir):
         for f in filenames:
-            print("currently found: {}".format(f))
-            if isfile(os.path.join(dirpath, f)) and not (f.endswith('__init__.py') or f.endswith('json')):
-                tasks.extend([f])
-        break
+            if f == args[0]:
+                print("currently found: {}".format(f))
+                if isfile(os.path.join(dirpath, f)) and not (f.endswith('__init__.py') or f.endswith('json')):
+                    tasks.extend([f])
+                break
+
+
+    ### we should check the task.json file against what we found here.
 
 
     """
@@ -30,7 +38,7 @@ def task_importer(engine, task_dir, args = []):
     """
     #tasks.reverse()
 
-    input_data = args
+    input_data = args[1]
 
     for i in tasks[::-1]:
         try:
@@ -54,5 +62,5 @@ def task_importer(engine, task_dir, args = []):
 
 if __name__ == "__main__":
 
-    args = ['a.txt', 'b.txt']
+    args = ('1_task.py', 'b.txt')
     task_importer('', "../tasks", args)
