@@ -160,14 +160,14 @@ if __name__ == '__main__':
 
     print("Received input: {}".format(sys.argv[1:]))
 
-    all_input = sys.argv[1:];
+    #all_input = sys.argv[1:];
 
-    data_input = ' '.join(all_input[1:])
+    #data_input = ' '.join(all_input[1:])
 
-    foo = (all_input[0], data_input)
+    #foo = (all_input[0], data_input)
 
-    print(foo)
-    exit(1)
+    #print(foo)
+    #exit(1)
 
     engine = AzureBatchEngine()
     engine.do(sys.argv[1:])

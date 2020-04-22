@@ -45,7 +45,7 @@ if __name__ == '__main__':
     storage = AzureBatchStorage()
 
     storage.addInputFilePath("requirements.txt")
-    storage.addInputFilePath("pi.jar")
+    storage.addInputFilePath("blackscholes.jar")
     #storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     job_id = my_batch.create_a_job()
 
 
-    args = ('1_task.py' , 'b.txt')
+    #args = ('1_task.py' , 'b.txt')
 
-    my_batch.add_task_to_job(job_id, 1 , args)
+    #my_batch.add_task_to_job(job_id, 1 , args)
 
 
     my_batch.add_tasks_from_manifest_file(job_id, "task.json")

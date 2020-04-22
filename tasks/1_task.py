@@ -39,9 +39,7 @@ def do_action(engine, args = []):
 
 
 
-    jar_args = ['pi.jar']  # Any number of args to be passed to the jar file
-
-    result = engine.java_runner(*jar_args)
+    result = engine.java_runner(*args)
 
     engine.dataToUpload(result)
 

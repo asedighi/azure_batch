@@ -10,8 +10,6 @@ def java_runner(*args) -> list:
         if line != b'' and len(line) > 0 and line.endswith(b'\n'):
            ret.append(line[:-1].decode('utf-8'))
 
-    #for i in range(len(ret)):
-    #    print("line: {}:{}".format(i,ret[i]))
     stdout, stderr = process.communicate()
 
     ret += stdout.split(b'\n')
@@ -20,26 +18,6 @@ def java_runner(*args) -> list:
     ret.remove(b'')
     return ret
 
-'''
-
-You need to replace:
-
-sys.stdout.write(nextline)
-
-with:
-
-sys.stdout.write(nextline.decode('utf-8'))
-
-or maybe:
-
-sys.stdout.write(nextline.decode(sys.stdout.encoding))
-
-You will also need to modify if nextline == '' to if nextline == b'' since:
-
->>> '' == b''
-False
-
-'''
 
 
 

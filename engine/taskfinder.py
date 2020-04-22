@@ -27,7 +27,10 @@ def task_importer(engine, task_dir, args=()):
                 print("currently found: {}".format(f))
                 if isfile(os.path.join(dirpath, f)) and not (f.endswith('__init__.py') or f.endswith('json')):
                     tasks.extend([f])
-                break
+                    break
+        break
+
+
 
 
     ### we should check the task.json file against what we found here.

@@ -7,22 +7,22 @@
 					[
 						{
 							"TASK_MODULE" : "1_task.py",
-							"TASK_INPUT" : "input 1"
+							"TASK_INPUT" : "java -Xmx4096m -jar blackscholes.jar 10.0 11.0 36.0 48.0 100000"
 						},
 
 						{
 							"TASK_MODULE" : "1_task.py",
-							"TASK_INPUT" : "input 2"
+							"TASK_INPUT" : "java -Xmx4096m -jar blackscholes.jar 10.0 11.0 24.0 36.0 100000"
 						},
 
 						{
 							"TASK_MODULE" : "1_task.py",
-							"TASK_INPUT" : "input 3"
+							"TASK_INPUT" : "java -Xmx4096m -jar blackscholes.jar 10.0 11.0 12.0 24.0 100000"
 						},
 
 						{
 							"TASK_MODULE" : "1_task.py",
-							"TASK_INPUT" : "input 4"
+							"TASK_INPUT" : "java -Xmx4096m -jar blackscholes.jar 10.0 11.0 0.0 12.0 100000"
 						}
 					]
 }
