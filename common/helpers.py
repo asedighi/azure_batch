@@ -77,6 +77,8 @@ def select_latest_verified_vm_image_with_node_agent_sku(
     """
     # get verified vm image list and node agent sku ids from service
     node_agent_skus = batch_client.account.list_node_agent_skus()
+
+    ###print(node_agent_skus)
     # pick the latest supported sku
     skus_to_use = [
         (sku, image_ref) for sku in node_agent_skus for image_ref in sorted(
@@ -365,9 +367,9 @@ def upload_blob_and_create_sas(
     :return: A SAS URL to the blob with the specified expiry time.
     :rtype: str
     """
-    block_blob_client.create_container(
-        container_name,
-        fail_on_exist=False)
+    #block_blob_client.create_container(
+    #    container_name,
+    #    fail_on_exist=False)
 
     block_blob_client.create_blob_from_path(
         container_name,

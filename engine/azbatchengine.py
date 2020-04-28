@@ -31,10 +31,10 @@ import sys
 
 sys.path.append('.')
 sys.path.append('..')
-sys.path.append('/mnt/batch/tasks/shared/')
-sys.path.append('/mnt/batch/tasks/shared/engine')
-sys.path.append('/mnt/batch/tasks/shared/batchwrapper')
-sys.path.append('/mnt/batch/tasks/shared/tasks')
+sys.path.append('/mnt/resource/batch/tasks/shared/')
+sys.path.append('/mnt/resource/batch/tasks/shared/engine')
+sys.path.append('/mnt/resource/batch/tasks/shared/batchwrapper')
+sys.path.append('/mnt/resource/batch/tasks/shared/tasks')
 
 from batchwrapper.config import getRandomizer
 from batchwrapper.config import AzureCredentials
@@ -43,9 +43,9 @@ from batchwrapper.config import TaskConfig
 from batchwrapper.config import find_file_path
 import argparse
 import ntpath
-import azure.storage.blob as azureblob
 from engine.taskfinder import task_importer
 from subprocess import *
+from azure.storage.blob import BlobServiceClient
 
 import os
 
@@ -53,18 +53,37 @@ class AzureBatchEngine():
 
     def __init__(self):
 
-        os.chdir('/mnt/batch/tasks/shared/engine')
+        os.chdir('/mnt/resource/batch/tasks/shared/engine')
 
         configuration = AzureCredentials()
 
-        self.account_name = configuration.getStorageAccountName()
-        self.account_key = configuration.getStorageAccountKey()
-        self.blob_client = azureblob.BlockBlobService(account_name=self.account_name, account_key=self.account_key)
+        #self.account_name = configuration.getStorageAccountName()
+        #self.account_key = configuration.getStorageAccountKey()
+        ##self.blob_client = azureblob.BlockBlobService(account_name=self.account_name, account_key=self.account_key)
+
+        self.storage_string = configuration.getStorageConnectionString()
+
+        self.blob_service_client = BlobServiceClient.from_connection_string(self.storage_string)
+
 
         task = TaskConfig()
 
         self.container_name = task.getOutputContainer()
-        self.blob_client.create_container(self.container_name, fail_on_exist=False)
+
+        paged_cont = self.blob_service_client.list_containers(name_starts_with=self.container_name)
+
+        counter = 0
+        for i in paged_cont:
+            counter += 1
+
+        if counter == 0:
+            self.blob_container_client = self.blob_service_client.create_container(self.container_name)
+            print("\tCreated {}... ".format(self.container_name))
+        else:
+            self.blob_container_client = self.blob_service_client.get_container_client(self.container_name)
+            print("\tContainer {} exists already... ".format(self.container_name))
+
+
         print("Output Container to be used is: {}... ".format(self.container_name))
 
 
@@ -81,16 +100,21 @@ class AzureBatchEngine():
             return
         return ReadConfig(name)
 
-    def java_runner(*args) -> list:
-        process = Popen(['java', '-jar'] + list(args), stdout=PIPE, stderr=PIPE)
+    def java_runner(self, args) -> list:
+
+        #print("argumet is of type in java runner", type(args))
+        #print("argumet is ", args)
+
+        os.chdir('/mnt/resource/batch/tasks/shared/tasks')
+
+
+        process = Popen(args, stdout=PIPE, stderr=PIPE)
         ret = []
         while process.poll() is None:
             line = process.stdout.readline()
             if line != b'' and len(line) > 0 and line.endswith(b'\n'):
                 ret.append(line[:-1].decode('utf-8'))
 
-        # for i in range(len(ret)):
-        #    print("line: {}:{}".format(i,ret[i]))
         stdout, stderr = process.communicate()
 
         ret += stdout.split(b'\n')
@@ -102,9 +126,15 @@ class AzureBatchEngine():
 
     def do(self, args = []):
 
-        in_data = ' '.join(args[1:])
+        #in_data = ' '.join(args[1:])
+        in_data = args[1:]
+
+
+        #print("setting arguments to: ", in_data)
 
         task_command = (args[0], in_data)
+
+        #print("task command is: ", task_command)
 
         task_importer(self, "../tasks", task_command)
 
@@ -119,7 +149,7 @@ class AzureBatchEngine():
 
         #/mnt/batch/tasks/workitems/<job id>/job-<#>/<task id>/wd
         #/mnt/batch/tasks/shared
-        name = find_file_path(file_name, "../../../../../")
+        name = find_file_path(file_name, "../")
         print("Found file to upload: {}".format(name))
         if name != '':
             self.file_list_to_upload.extend([name])
@@ -128,19 +158,23 @@ class AzureBatchEngine():
 
 
 
-    def dataToUpload(self, data=''):
+    def dataToUpload(self, data: str =''):
         if data != '':
             self.result_to_upload = data
 
+            self.uploadResultData()
+
 
     def uploadResultData(self):
+
+        ##print("the current working directory for uploading results is: {}".format(os.getcwd()))
 
         filen = "result_" + getRandomizer() + ".txt"
         if self.result_to_upload != '':
             text_file = open(filen, "w")
             n = text_file.write(self.result_to_upload)
             text_file.close()
-            self.dataToUpload(filen)
+            self.addFileToUpload(filen)
 
 
     def uploadFiles(self):
@@ -149,10 +183,13 @@ class AzureBatchEngine():
         for output_file in self.file_list_to_upload:
 
             print('Uploading file {} to container [{}]...'.format(output_file, self.container_name))
-            self.blob_client.create_blob_from_path(self.container_name, ntpath.basename(output_file), output_file)
+            self.blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=ntpath.basename(output_file))
+
+            # Upload the created file
+            with open(output_file, "rb") as data:
+                self.blob_client.upload_blob(data)
+
             self.file_list_to_upload.remove(output_file)
-
-
 
 
 if __name__ == '__main__':

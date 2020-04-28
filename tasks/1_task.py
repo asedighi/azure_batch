@@ -29,22 +29,34 @@ from engine.azbatchengine import AzureBatchEngine
 
 
 
-def do_action(engine, args = []):
+def do_action(engine, args):
 
     print('Hello world from do_action #1')
     print("the current working directory is: {}".format(os.getcwd()))
 
-    for i in args:
-        print("i need to do something to: {}".format(i))
+    print("i need to do something to: {}".format(args))
 
 
+    print("argumet is of type", type(args))
 
-    result = engine.java_runner(*args)
+    result = engine.java_runner(args)
 
-    engine.dataToUpload(result)
+    print("got results: ", result)
+
+
+    all = ''
+
+    for i in result:
+        all = all + i
+        all = all + '\n'
+
+
+    engine.dataToUpload(all)
+    ##engine.uploadFiles()
+
+
 
 
     #engine.addFileToUpload("a.txt")
 
 
-    return ["this is a test"]

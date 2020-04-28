@@ -28,12 +28,13 @@ from batchwrapper.config import AzureCredentials
 
 from batchwrapper.config import getRandomizer
 
-import azure.storage.blob as azureblob
 import azure.batch.models as batchmodels
 import datetime
 import os
 import time
-
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from datetime import datetime, timedelta
+from azure.storage.blob import ResourceTypes, AccountSasPermissions, generate_account_sas
 
 
 class AzureStorage():
@@ -46,10 +47,14 @@ class AzureStorage():
         self.input_container_name = 'input-' + random
         self.output_container_name = 'output-' + random
 
-        self.account_name = configuration.getStorageAccountName()
-        self.account_key = configuration.getStorageAccountKey()
+        #self.account_name = configuration.getStorageAccountName()
+        #self.account_key = configuration.getStorageAccountKey()
+        self.storage_string = configuration.getStorageConnectionString()
+
+
         self.location = configuration.getLocation()
-        self.blob_client = azureblob.BlockBlobService(account_name=self.account_name, account_key=self.account_key)
+        self.blob_service_client = BlobServiceClient.from_connection_string(self.storage_string)
+        self.blob_container_client = None
 
 
     def getDefaultAppContainer(self):
@@ -75,60 +80,118 @@ class AzureStorage():
         """
         blob_name = os.path.basename(file_path)
 
-        self.blob_client.create_container(container_name, fail_on_exist=False)
-        print("\tCreated {}... ".format(container_name))
+
+        paged_cont = self.blob_service_client.list_containers(name_starts_with=container_name)
+
+        counter = 0
+        for i in paged_cont:
+            counter += 1
+
+        if counter == 0:
+            self.blob_container_client = self.blob_service_client.create_container(container_name)
+            print("\tCreated {}... ".format(container_name))
+        else:
+            self.blob_container_client = self.blob_service_client.get_container_client(container_name)
+            print("\tContainer {} exists already... ".format(container_name))
 
         print('Uploading file {} to container [{}]...'.format(file_path,
                                                               container_name))
 
-        self.blob_client.create_blob_from_path(container_name,
-                                                blob_name,
-                                                file_path)
 
-        sas_token = self.blob_client.generate_blob_shared_access_signature(
-            container_name,
-            blob_name,
-            permission=azureblob.BlobPermissions.READ,
-            expiry=datetime.datetime.utcnow() + datetime.timedelta(hours=2))
+        url = self.blob_container_client.url
 
-        sas_url = self.blob_client.make_blob_url(container_name,
-                                                  blob_name,
-                                                  sas_token=sas_token)
+        self.blob_client = self.blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+        # Upload the created file
+        with open(file_path, "rb") as data:
+            self.blob_client.upload_blob(data)
+
+        #self.blob_client.create_blob_from_path(container_name,
+        #                                        blob_name,
+        #                                        file_path)
+
+        #sas_token = generate_account_sas(
+        #    self.blob_service_client.account_name,
+        #    account_key=self.blob_service_client.credential.account_key,
+        #    resource_types=ResourceTypes(object=True),
+        #    permission=AccountSasPermissions(write=True, delete=True, read=True),
+        #    expiry=datetime.utcnow() + timedelta(hours=8)
+        #)
+        sas_token = self._get_container_sas_token()
+
+        #sas_token = self.blob_client.generate_blob_shared_access_signature(
+        #    container_name,
+        #    blob_name,
+        #    permission=azureblob.BlobPermissions.READ,
+        #    expiry=datetime.datetime.utcnow() + datetime.timedelta(hours=2))
+
+        #sas_url = self.blob_service_client.make_blob_url(container_name,
+        #                                          blob_name,
+        #                                          sas_token=sas_token)
+
+        sas_url = url + "/" + blob_name + "?" + sas_token
+
 
         return batchmodels.ResourceFile(file_path=blob_name,
-                                        blob_source=sas_url)
-
+                                        http_url=sas_url)
 
 
     def create_output_container(self, container_name=''):
 
         if(container_name==''):
             container_name=self.getDefaultOutputContainer()
-        self.blob_client.create_container(container_name, fail_on_exist=False)
+        blob_container_client = self.blob_service_client.create_container(container_name)
         print("\tCreated {}... ".format(container_name))
-        output_container_sas_token = self._get_container_sas_token(container_name, azureblob.BlobPermissions.WRITE)
+
+        url = blob_container_client.url
+
+        output_container_sas_token = self._get_container_sas_token()
+
+
+        #sas_url = url + "?" + output_container_sas_token
+
         return container_name, output_container_sas_token
 
 
-    def _get_container_sas_token(self, container_name, blob_permissions):
-        """
-        Obtains a shared access signature granting the specified permissions to the
-        container.
 
-        :param str container_name: The name of the Azure Blob storage container.
-        :param BlobPermissions blob_permissions:
-        :rtype: str
-        :return: A SAS token granting the specified permissions to the container.
-        """
-        # Obtain the SAS token for the container, setting the expiry time and
-        # permissions. the shared access signature becomes valid immediately.
-        container_sas_token = \
-            self.blob_client.generate_container_shared_access_signature(
-                container_name,
-                permission=blob_permissions,
-                expiry=datetime.datetime.utcnow() + datetime.timedelta(hours=6))
+
+
+
+
+    def _get_container_sas_token(self):
+
+
+        sas_token = generate_account_sas(
+            self.blob_service_client.account_name,
+            account_key=self.blob_service_client.credential.account_key,
+            resource_types=ResourceTypes(object=True),
+            permission=AccountSasPermissions(write=True, delete=True, read=True),
+            expiry=datetime.utcnow() + timedelta(hours=8)
+        )
+        return sas_token
+
+    '''
+
+    def _get_container_sas_token(self, container_name):
+        # Instantiate a BlobServiceClient using a connection string
+        from azure.storage.blob import BlobServiceClient
+        blob_service_client = BlobServiceClient.from_connection_string(self.storage_string)
+
+        # [START create_sas_token]
+        # Create a SAS token to use to authenticate a new client
+        from datetime import datetime, timedelta
+        from azure.storage.blob import ResourceTypes, AccountSasPermissions, generate_account_sas
+
+        container_sas_token = generate_account_sas(
+            blob_service_client.account_name,
+            account_key=blob_service_client.credential.account_key,
+            resource_types=ResourceTypes(object=True),
+            permission=AccountSasPermissions(write=True, delete=True, read=True),
+            expiry=datetime.utcnow() + timedelta(hours=1000)
+        )
 
         return container_sas_token
+    '''
 
 
 

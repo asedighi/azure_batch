@@ -45,13 +45,10 @@ if __name__ == '__main__':
     storage = AzureBatchStorage()
 
     storage.addInputFilePath("requirements.txt")
-    storage.addInputFilePath("blackscholes.jar")
-    #storage.addInputFilePath("b.txt")
     storage.uploadInputFiles()
 
+    storage.addTaskFilePath("tasks/blackscholes.jar")
     storage.addTaskFilePath("tasks/1_task.py")
-    #storage.addTaskFilePath("tasks/2_task.py")
-
     storage.uploadTaskFiles()
 
     my_batch = AzureBatch(storage)
@@ -61,19 +58,28 @@ if __name__ == '__main__':
 
     #my_pool = "azpool_155836035085950"
 
-    my_pool = my_batch.get_available_pool()
+
+    ## to create a pool
+    #my_pool = my_batch.create_pool(app_resources=app, app_name='mcs', input_resources=input_files, task_files=tasks)
+
+    ### to use any old pool available
+    #my_pool = my_batch.get_available_pool()
+
+    ### use a very specific pool
+    my_pool = "azpool_158758067460598"
+
     my_batch.repurpose_existing_pool(my_pool,app, input_files, tasks)
 
     #my_batch.use_exisiting_pool(my_pool)
 
 
-
+    ## to delete a pool
     #my_batch.delete_all_pools()
 
-    #my_batch.create_pool(app_resources=app, input_resources=input_files, task_files=tasks)
 
 
 
+    print("================= Using pool {} ====================".format(my_pool))
 
 
     job_id = my_batch.create_a_job()

@@ -23,7 +23,7 @@
 # DEALINGS IN THE SOFTWARE.
 import sys
 
-import azure.batch.batch_service_client as batch
+import azure.batch as batch
 import azure.batch.batch_auth as batchauth
 import azure.batch.models as batchmodels
 
@@ -55,8 +55,12 @@ class AzureBatch():
 
         self.credentials = batchauth.SharedKeyCredentials(self.account_name,self.account_key)
 
-        self.batch_client = batch.BatchServiceClient(self.credentials,base_url=self.account_url)
+        self.batch_client = batch.BatchServiceClient(self.credentials,batch_url=self.account_url)
 
+
+        print("API version is: ",  self.batch_client.task.api_version)
+        #self.batch_client.task.api_version = "2020-03-01.11.0"
+        #print("API version is: ",  self.batch_client.task.api_version)
 
         batch_config = AzureBatchConfiguration()
 
@@ -69,13 +73,13 @@ class AzureBatch():
         self.pool_os_ver = batch_config.getOSVersion()
         self.pool_engine_name = batch_config.getEngineName()
 
-        batch_json = find_file_path("batch.json")
+        batch_json = find_file_path("batch.json", "../")
         print("Found batch.json in: {}".format(batch_json))
 
-        credential_json = find_file_path("credentials.json")
+        credential_json = find_file_path("credentials.json", "../")
         print("Found credentials.json in: {}".format(credential_json))
 
-        task_json = find_file_path("task.json")
+        task_json = find_file_path("task.json", "../")
         print("Found task.json in: {}".format(task_json))
 
         self.my_storage.addApplicationFilePath("engine/"+batch_config.getEngineName())
@@ -161,9 +165,11 @@ class AzureBatch():
 
         print("Command to be executed is: {}".format(command))
         tasks.append(batch.models.TaskAddParameter(
-            '{}_{}'.format(str(job_id), "clean"),
-            common.helpers.wrap_commands_in_shell('linux', command), user_identity=batchmodels.UserIdentity(auto_user=user))
+            id='{}_{}'.format(str(job_id), "clean"),
+            command_line=common.helpers.wrap_commands_in_shell('linux', command), user_identity=batchmodels.UserIdentity(auto_user=user))
         )
+
+        #self.batch_client.task.api_version = "2020-03-01.11.0"
 
 
         self.batch_client.task.add_collection(job_id, tasks)
@@ -180,6 +186,7 @@ class AzureBatch():
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
+            'chmod 777 $AZ_BATCH_NODE_SHARED_DIR/tasks',
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
@@ -210,16 +217,27 @@ class AzureBatch():
         resource_meta.extend(input_resources)
 
 
+        #for i in resource_meta:
+        #    print(i)
+
+
         user = batchmodels.AutoUserSpecification(scope=batchmodels.AutoUserScope.pool, elevation_level=batchmodels.ElevationLevel.admin)
 
 
         print("Command to be executed is: {}".format(command))
-        tasks.append(batch.models.TaskAddParameter(
-            '{}_{}'.format(str(job_id), "repurpose"),
-            common.helpers.wrap_commands_in_shell('linux', command),resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user))
-        )
+        #tasks.append(batch.models.TaskAddParameter(
+        #    id='{}_{}'.format(str(job_id), "repurpose"),
+        #    command_line=common.helpers.wrap_commands_in_shell('linux', command),resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user))
+        #)
 
-        self.batch_client.task.add_collection(job_id, tasks)
+        #self.batch_client.task.api_version = "2020-03-01.11.0"
+
+        #self.batch_client.task.add_collection(job_id=job_id, value=tasks)
+        self.batch_client.task.add(job_id=job_id,
+                                   task=batch.models.TaskAddParameter(
+                                        id='{}_{}'.format(str(job_id), "repurpose"),
+                                        command_line=common.helpers.wrap_commands_in_shell('linux', command),
+                                       resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user)))
 
         print("Going to asleep after repurpose - for 30 seconds")
         time.sleep(30)
@@ -246,6 +264,7 @@ class AzureBatch():
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/batchwrapper',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/engine',
             'mkdir -p $AZ_BATCH_NODE_SHARED_DIR/tasks',
+            'chmod 777 $AZ_BATCH_NODE_SHARED_DIR/tasks',
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format(self.pool_engine_name),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/engine/'.format("taskfinder.py"),
             'cp -p {} $AZ_BATCH_NODE_SHARED_DIR/batchwrapper/'.format("credentials.json"),
@@ -268,13 +287,14 @@ class AzureBatch():
             print("adding file: {}".format(i.file_path))
             task_commands.extend(['cp -p {} $AZ_BATCH_NODE_SHARED_DIR'.format(i.file_path)])
 
-        requirements_file = find_file_path("requirements.txt")
+        requirements_file = find_file_path("requirements.txt", ".")
         print("Found requirements.txt in: {}".format(requirements_file))
 
         if(requirements_file != None):
-            task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/get-pip.py | python', 'pip install -r '+ requirements_file])
+            task_commands.extend( ['/bin/bash -c "sudo yum -y install java-11-openjdk python3"', 'sudo pip3 install -r '+ requirements_file])
+            ###task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/3.4/get-pip.py | python3', 'pip3 install -r '+ requirements_file])
         else:
-            task_commands.extend( ['curl -fSsL https://bootstrap.pypa.io/get-pip.py | python', 'pip install azure'])
+            task_commands.extend( ['/bin/bash -c "sudo yum -y install java-11-openjdk python3"', 'sudo pip3 install azure-storage-blob azure-batch'])
 
 
 
@@ -332,8 +352,8 @@ class AzureBatch():
         print('Creating job [{}]...'.format(job_id))
 
         job = batch.models.JobAddParameter(
-            job_id,
-            batch.models.PoolInformation(pool_id=self.pool_name))
+            id=job_id,
+            pool_info=batch.models.PoolInformation(pool_id=self.pool_name))
 
         try:
             self.batch_client.job.add(job)
@@ -356,17 +376,18 @@ class AzureBatch():
 
         print('Adding task {} to job {}...{}'.format(task_id, job_id, task_command))
 
-        command = ['python $AZ_BATCH_NODE_SHARED_DIR/engine/{} {}'.format(self.pool_engine_name, task_command)]
+        command = ['python3 $AZ_BATCH_NODE_SHARED_DIR/engine/{} {}'.format(self.pool_engine_name, task_command)]
 
         tasks = []
 
         print("Command to be executed is: {}".format(command))
         tasks.append(batch.models.TaskAddParameter(
-                '{}_{}'.format(str(job_id), str(task_id)),
-                common.helpers.wrap_commands_in_shell('linux', command),
+                id='{}_{}'.format(str(job_id), str(task_id)),
+                command_line=common.helpers.wrap_commands_in_shell('linux', command),
                 #resource_files=[i.file_path]
                 )
         )
+        self.batch_client.task.api_version = "2020-03-01.11.0"
 
         self.batch_client.task.add_collection(job_id, tasks)
 

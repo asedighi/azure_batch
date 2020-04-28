@@ -29,14 +29,15 @@ import json
 
 import os
 import time
-
+import random
 
 DEFAULT_LOCATION = 'eastus'
 
 
 
 def getRandomizer():
-    timestamp = int(time.time()* 100000)
+###    timestamp = int(time.time()* random.random())
+    timestamp = int(time.time()* 10000)
     return str(timestamp)
 
 
@@ -62,7 +63,7 @@ class ReadConfig():
                 json_config = json.load(json_data)
 
         else:
-            my_path = find_file_path(name, "../../../../")
+            my_path = find_file_path(name, "../")
             print("found: {}".format(my_path))
             if os.path.isfile(my_path):
                 with open(my_path) as json_data:
@@ -87,7 +88,7 @@ class AzureCredentials():
                 self.cred = json.load(json_data)
 
         else:
-            my_path = find_file_path("credentials.json", "../../../../")
+            my_path = find_file_path("credentials.json", "../")
             if my_path == None:
                 print("I was not able to find the credentials.json file... exiting....")
                 exit(-1)
@@ -102,8 +103,9 @@ class AzureCredentials():
         self.batch_account_name = self.cred['BATCH_ACCOUNT_NAME']
         self.batch_account_key = self.cred['BATCH_ACCOUNT_KEY']
         self.batch_account_url = self.cred['BATCH_ACCOUNT_URL']
-        self.storage_account_name = self.cred['STORAGE_ACCOUNT_NAME']
-        self.storage_account_key = self.cred['STORAGE_ACCOUNT_KEY']
+        self.storage_connection_string = self.cred['STORAGE_CONNECTION_STRING']
+
+
         self.LOCATION = DEFAULT_LOCATION
 
         
@@ -124,11 +126,8 @@ class AzureCredentials():
     def getBatchAccountUrl(self):
         return self.batch_account_url
     
-    def getStorageAccountName(self):
-        return self.storage_account_name
-
-    def getStorageAccountKey(self):
-        return self.storage_account_key
+    def getStorageConnectionString(self):
+        return self.storage_connection_string
 
 
 
@@ -157,7 +156,7 @@ class AzureBatchConfiguration():
                 self.batch = json.load(json_data)
 
         else:
-            my_path = find_file_path("batch.json", "../../../../")
+            my_path = find_file_path("batch.json", "../")
 
             print("Found: {}".format(my_path))
 
@@ -205,7 +204,7 @@ class TaskConfig():
                 self.task = json.load(json_data)
 
         else:
-            my_path = find_file_path("task.json", "../../../../")
+            my_path = find_file_path("task.json", "../")
 
             print("found: {}".format(my_path))
             if os.path.isfile(my_path):
@@ -243,7 +242,7 @@ class TaskManifest():
                 self.manifest = json.load(json_data)
 
         else:
-            my_path = find_file_path(manifest_file, "../../../../")
+            my_path = find_file_path(manifest_file, "../")
 
             print("Found manifest in: {}".format(my_path))
             if os.path.isfile(my_path):
@@ -289,6 +288,12 @@ class TaskManifest():
 
 if __name__ == '__main__':
 
+
+    print(getRandomizer())
+    print(getRandomizer())
+    print(getRandomizer())
+    print(getRandomizer())
+    print(getRandomizer())
 
     manifest = TaskManifest("task.json")
     tasks = manifest.get_tasks()
