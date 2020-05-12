@@ -264,7 +264,6 @@ def create_job(batch_service_client, job_id, pool_id):
 
 def wait_for_all_nodes_state(batch_client, pool, node_state):
     """Waits for all nodes in pool to reach any specified state in set
-
     :param batch_client: The batch client to use.
     :type batch_client: `batchserviceclient.BatchServiceClient`
     :param pool: The pool containing the node.

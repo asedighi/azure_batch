@@ -99,6 +99,32 @@ class AzureBatch():
         self.my_storage.uploadApplicationFiles()
 
 
+    def _wait_for_ready_pool(self, pool):
+
+        # because we want all nodes to be available before any tasks are assigned
+        # to the pool, here we will wait for all compute nodes to reach idle
+
+        pool_o = None
+        pool_paged = self.batch_client.pool.list()
+        for pool_s in pool_paged:
+            if pool_s.id == pool:
+                pool_o = pool_s
+                break;
+
+        nodes = common.helpers.wait_for_all_nodes_state(
+            self.batch_client, pool_o,
+            frozenset(
+                (batchmodels.ComputeNodeState.start_task_failed,
+                 batchmodels.ComputeNodeState.unusable,
+                 batchmodels.ComputeNodeState.idle)
+            )
+        )
+        # ensure all node are idle
+        if any(node.state != batchmodels.ComputeNodeState.idle for node in nodes):
+            raise RuntimeError('node(s) of pool {} not in idle state'.format(
+                pool))
+
+
     def use_exisiting_pool(self, pool=''):
 
         if pool == '':
@@ -164,18 +190,17 @@ class AzureBatch():
         command = ['rm -rf $AZ_BATCH_NODE_SHARED_DIR/*']
 
         print("Command to be executed is: {}".format(command))
-        tasks.append(batch.models.TaskAddParameter(
-            id='{}_{}'.format(str(job_id), "clean"),
-            command_line=common.helpers.wrap_commands_in_shell('linux', command), user_identity=batchmodels.UserIdentity(auto_user=user))
-        )
-
-        #self.batch_client.task.api_version = "2020-03-01.11.0"
-
+        for i in range(self.pool_count):
+            tasks.append(batch.models.TaskAddParameter(
+                    id='{}_{}_{}'.format(str(job_id), "clean", str(i)),
+                    command_line=common.helpers.wrap_commands_in_shell('linux', command),
+                    )
+            )
 
         self.batch_client.task.add_collection(job_id, tasks)
 
-        print("Going to asleep after delete - for 60 seconds")
-        time.sleep(60)
+        print("Waiting for pool to become ready...")
+        self._wait_for_ready_pool(self.pool_name)
         print("Back up - going to repurpose the system now")
 
         #we need to create a new job now
@@ -233,15 +258,17 @@ class AzureBatch():
         #self.batch_client.task.api_version = "2020-03-01.11.0"
 
         #self.batch_client.task.add_collection(job_id=job_id, value=tasks)
-        self.batch_client.task.add(job_id=job_id,
-                                   task=batch.models.TaskAddParameter(
-                                        id='{}_{}'.format(str(job_id), "repurpose"),
-                                        command_line=common.helpers.wrap_commands_in_shell('linux', command),
-                                       resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user)))
+        for i in range(self.pool_count):
+            tasks.append(batch.models.TaskAddParameter(
+                    id='{}_{}_{}'.format(str(job_id), "repurpose", str(i)),
+                    command_line=common.helpers.wrap_commands_in_shell('linux', command),
+                    resource_files=resource_meta,user_identity=batchmodels.UserIdentity(auto_user=user))
+            )
 
-        print("Going to asleep after repurpose - for 30 seconds")
-        time.sleep(30)
-        print("Back up - read to work now")
+
+        print("Waiting for pool to become ready after repurpose")
+        self._wait_for_ready_pool(self.pool_name)
+        print("Back up - ready to work now")
 
         return self.pool_name
 
@@ -338,10 +365,10 @@ class AzureBatch():
             print_batch_exception(err)
             raise
 
-        print("Going to asleep after creation - for 30 seconds")
-        time.sleep(30)
-        print("Back up - read to work now")
-
+        print("Waiting for pool to become ready after creation")
+        self._wait_for_ready_pool(self.pool_name)
+        print("Back up - ready to work now")
+        
         return self.pool_name
 
 
