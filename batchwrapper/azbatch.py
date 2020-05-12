@@ -317,13 +317,14 @@ class AzureBatch():
         resource_meta.extend(task_files)
         resource_meta.extend(input_resources)
 
-
         new_pool = batch.models.PoolAddParameter(id=self.pool_name,
             virtual_machine_configuration=batchmodels.VirtualMachineConfiguration(
                 image_reference=image_ref_to_use,
                 node_agent_sku_id=sku_to_use),
             vm_size=self.pool_type,
             target_dedicated_nodes=self.pool_count,
+            max_tasks_per_node=1,
+            task_scheduling_policy=batch.models.TaskSchedulingPolicy(node_fill_type=batch.models.ComputeNodeFillType.spread),
             start_task=batch.models.StartTask(
                 command_line=common.helpers.wrap_commands_in_shell('linux',
                                                                    task_commands),
@@ -331,7 +332,6 @@ class AzureBatch():
                 wait_for_success=True,
                 resource_files=resource_meta),
         )
-
         try:
             self.batch_client.pool.add(new_pool)
         except batchmodels.batch_error.BatchErrorException as err:
@@ -387,8 +387,6 @@ class AzureBatch():
                 #resource_files=[i.file_path]
                 )
         )
-        self.batch_client.task.api_version = "2020-03-01.11.0"
-
         self.batch_client.task.add_collection(job_id, tasks)
 
 
